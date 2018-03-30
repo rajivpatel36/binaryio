@@ -99,5 +99,15 @@ class BinaryReader(io.BufferedReader):
     def read_uint32s(self, count: int) -> Tuple[int]:
         return self._read_values("I", count)
 
+    def read_double(self) -> float:
+        return self._read_value("d")
+
+    def read_doubles(self, count: int) -> Tuple(float):
+        return self._read_values("d", count)
+
+    def read_length_prefixed_string(self, encoding: str = None) -> str:
+        n_bytes = self.read_int16()
+        self.read_raw_string(n_bytes, encoding)
+
     def temporary_seek(self, offset: int = 0, whence=io.SEEK_SET) -> SeekTask:
         return SeekTask(self.raw, offset, whence)

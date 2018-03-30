@@ -85,3 +85,14 @@ class BinaryWriter(io.BufferedWriter):
 
     def write_raw_string(self, value: str, encoding: str = "ascii"):
         self.write(bytes(value, encoding=encoding))
+
+    def write_double(self, value: float):
+        self._write_value("d", value)
+
+    def write_doubles(self, value: Iterable[float]):
+        self._write_values("d", value)
+
+    def write_length_prefixed_string(self, value: str, encoding: str = "ascii"):
+        bytes_to_write = bytes(value, encoding=encoding)
+        self.write_int16(len(bytes_to_write))
+        self.write(bytes_to_write)
