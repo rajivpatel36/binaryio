@@ -84,6 +84,18 @@ class BinaryWriter(io.BufferedWriter):
     def write_uint32s(self, value: Iterable[int]):
         self._write_values("I", value)
 
+    def write_int64(self, value: int):
+        self._write_value("q", value)
+
+    def write_int64s(self, value: Iterable[int]):
+        self._write_values("q", value)
+
+    def write_uint64(self, value: int):
+        self._write_value("Q", value)
+
+    def write_uint64s(self, value: Iterable[int]):
+        self._write_values("Q", value)
+
     def write_raw_string(self, value: str, encoding: str = None):
         self.write(bytes(value, encoding=encoding or self._default_encoding))
 

@@ -99,6 +99,18 @@ class BinaryReader(io.BufferedReader):
     def read_uint32s(self, count: int) -> Tuple[int]:
         return self._read_values("I", count)
 
+    def read_int64(self) -> int:
+        return self._read_value("q")
+
+    def read_int64s(self, count: int) -> Tuple[int]:
+        return self._read_values("q", count)
+
+    def read_uint64(self) -> int:
+        return self._read_value("Q")
+
+    def read_uint64s(self, count: int) -> Tuple[int]:
+        return self._read_values("Q", count)
+
     def read_double(self) -> float:
         return self._read_value("d")
 
