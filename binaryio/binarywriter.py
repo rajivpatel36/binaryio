@@ -11,7 +11,6 @@ class BinaryWriter(io.BufferedWriter):
         super().__init__(raw, buffer_size=buffer_size)
         self._default_encoding = encoding
         self._endianness = endianness
-        self._structs_cache = {}
 
     def _write_value(self, fmt: str, value):
         """
