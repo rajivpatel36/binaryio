@@ -2,6 +2,10 @@ import io
 
 
 class SeekTask:
+    """
+    A context manager class which remembers the current position of the stream and seeks back to this position
+    after exiting.
+    """
     def __init__(self, raw, offset: int, whence):
         self.raw = raw
         self.offset = offset
