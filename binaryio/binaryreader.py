@@ -74,7 +74,7 @@ class BinaryReader(io.BufferedReader):
     def read_singles(self, count: int) -> Tuple[float]:
         return self._read_values("f", count)
 
-    def read_string_0(self, encoding: str = None) -> str:
+    def read_0_string(self, encoding: str = None) -> str:
         # This will not work for strings with differently sized characters depending on their code.
         char_size = len("a".encode(encoding or self.encoding))
         str_bytes = bytearray()
@@ -84,7 +84,7 @@ class BinaryReader(io.BufferedReader):
             read_bytes = bytearray(self.read(char_size))
         return str_bytes.decode(encoding or self.encoding)
 
-    def read_string_raw(self, length: int, encoding: str = None) -> str:
+    def read_raw_string(self, length: int, encoding: str = None) -> str:
         return self.read(length).decode(encoding or self.encoding)
 
     def read_uint16(self) -> int:
