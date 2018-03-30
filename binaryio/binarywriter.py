@@ -3,9 +3,9 @@ import struct
 
 
 class BinaryWriter(io.BufferedWriter):
-    def __init__(self, raw):
-        super().__init__(raw)
-        self.endianness = ""
+    def __init__(self, raw, buffer_size: int=io.DEFAULT_BUFFER_SIZE, endianness: str = ""):
+        super().__init__(raw, buffer_size=buffer_size)
+        self.endianness = endianness
 
     def align(self, alignment):
         super().seek(-super().tell() % alignment, io.SEEK_CUR)
