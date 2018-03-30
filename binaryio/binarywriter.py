@@ -65,6 +65,12 @@ class BinaryWriter(io.BufferedWriter):
     def write_singles(self, value: Iterable[float]):
         self._write_values("f", value)
 
+    def write_int16(self, value: int):
+        self._write_value("h", value)
+
+    def write_int16s(self, value: Iterable[int]):
+        self._write_values("h", value)
+
     def write_uint16(self, value: int):
         self._write_value("H", value)
 
