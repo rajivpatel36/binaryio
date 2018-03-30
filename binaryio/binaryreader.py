@@ -26,7 +26,7 @@ class BinaryReader(io.BufferedReader):
             The value read from the stream.
         """
         struct = get_struct(f"{self._endianness}{fmt}")
-        return struct.unpack_from(self)[0]
+        return struct.unpack(self.read(struct.size))[0]
 
     def _read_values(self, fmt: str, count: int) -> tuple:
         """
@@ -39,7 +39,8 @@ class BinaryReader(io.BufferedReader):
             A `tuple` containing the values read from the stream.
         """
         full_format = f"{self._endianness}{count}{fmt}"
-        return Struct(full_format).unpack_from(self)
+        struct = Struct(full_format)
+        return struct.unpack(self.read(struct.size))
 
     def align(self, alignment: int) -> None:
         self.seek(-self.tell() % alignment, io.SEEK_CUR)
@@ -80,7 +81,7 @@ class BinaryReader(io.BufferedReader):
         str_bytes = bytearray()
         read_bytes = bytearray(self.read(char_size))
         while any(read_bytes):
-            str_bytes.append(read_bytes)
+            str_bytes.extend(read_bytes)
             read_bytes = bytearray(self.read(char_size))
         return str_bytes.decode(encoding or self._default_encoding)
 
@@ -114,12 +115,12 @@ class BinaryReader(io.BufferedReader):
     def read_double(self) -> float:
         return self._read_value("d")
 
-    def read_doubles(self, count: int) -> Tuple(float):
+    def read_doubles(self, count: int) -> Tuple[float]:
         return self._read_values("d", count)
 
     def read_length_prefixed_string(self, encoding: str = None) -> str:
         n_bytes = self.read_int16()
-        self.read_raw_string(n_bytes, encoding)
+        return self.read_raw_string(n_bytes, encoding)
 
     def temporary_seek(self, offset: int = 0, whence=io.SEEK_SET) -> SeekTask:
-        return SeekTask(self.raw, offset, whence)
+        return SeekTask(self, offset, whence)

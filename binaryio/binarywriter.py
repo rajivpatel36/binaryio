@@ -57,7 +57,7 @@ class BinaryWriter(io.BufferedWriter):
     def write_sbyte(self, value: int):
         self._write_value("b", value)
 
-    def write_sbytes(self, value: bytes):
+    def write_sbytes(self, value: Iterable[int]):
         self._write_values("b", value)
 
     def write_single(self, value: float):
