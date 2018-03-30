@@ -1,13 +1,38 @@
 import io
-import struct
 
+from struct import Struct
 from typing import Iterable
+
+from binaryio.structs import get_struct
 
 
 class BinaryWriter(io.BufferedWriter):
     def __init__(self, raw, buffer_size: int=io.DEFAULT_BUFFER_SIZE, endianness: str = ""):
         super().__init__(raw, buffer_size=buffer_size)
         self.endianness = endianness
+        self._structs_cache = {}
+
+    def _write_value(self, fmt: str, value):
+        """
+        Writes a single value of a specified format to the stream.
+        Args:
+            fmt: The format string for the value to be written to the stream.
+            value: The value to write to the stream.
+        """
+        struct = get_struct(f"{self.endianness}{fmt}")
+        self.write(struct.pack(value))
+
+    def _write_values(self, fmt: str, values: Iterable):
+        """
+        Writes an iterable of values of the specified format to the stream.
+        Args:
+            fmt: The format of the values to be written to the stream.
+            values: The iterable of values to be written to the stream.
+        """
+        # This does not use _get_struct because the length of `values` may change frequently so the cache
+        # would not be effective.
+        full_format = f"{self.endianness}{len(values)}{fmt}"
+        self.write(Struct(full_format).pack(*values))
 
     def align(self, alignment: int):
         self.seek(-self.tell() % alignment, io.SEEK_CUR)
@@ -17,40 +42,40 @@ class BinaryWriter(io.BufferedWriter):
         self.write_byte(0)
 
     def write_byte(self, value: int):
-        self.write(struct.pack("B", value))
+        self._write_value("B", value)
 
     def write_bytes(self, value: bytes):
         self.write(value)
 
     def write_int32(self, value: int):
-        self.write(struct.pack(self.endianness + "i", value))
+        self._write_value("i", value)
 
     def write_int32s(self, value: Iterable[int]):
-        self.write(struct.pack(self.endianness + str(len(value)) + "i", *value))
+        self._write_values("i", value)
 
     def write_sbyte(self, value: int):
-        self.write(struct.pack(self.endianness + "b", value))
+        self._write_value("b", value)
 
     def write_sbytes(self, value: bytes):
-        self.write(struct.pack(self.endianness + str(len(value)) + "b", *value))
+        self._write_values("b", value)
 
     def write_single(self, value: float):
-        self.write(struct.pack(self.endianness + "f", value))
+        self._write_value("f", value)
 
     def write_singles(self, value: Iterable[float]):
-        self.write(struct.pack(self.endianness + str(len(value)) + "f", *value))
+        self._write_values("f", value)
 
     def write_uint16(self, value: int):
-        self.write(struct.pack(self.endianness + "H", value))
+        self._write_value("H", value)
 
     def write_uint16s(self, value: Iterable[int]):
-        self.write(struct.pack(self.endianness + str(len(value)) + "H", *value))
+        self._write_values("H", value)
 
     def write_uint32(self, value: int):
-        self.write(struct.pack(self.endianness + "I", value))
+        self._write_value("I", value)
 
     def write_uint32s(self, value: Iterable[int]):
-        self.write(struct.pack(self.endianness + str(len(value)) + "I", *value))
+        self._write_values("I", value)
 
     def write_raw_string(self, value: str, encoding: str = "ascii"):
         self.write(bytes(value, encoding=encoding))
