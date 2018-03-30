@@ -8,10 +8,10 @@ from binaryio.structs import get_struct
 
 
 class BinaryReader(io.BufferedReader):
-    def __init__(self, raw, buffer_size=io.DEFAULT_BUFFER_SIZE, encoding: str = "ascii", endianness: str = "="):
+    def __init__(self, raw, buffer_size=io.DEFAULT_BUFFER_SIZE, encoding: str = "utf-8", endianness: str = ""):
         super().__init__(raw, buffer_size=buffer_size)
-        self.encoding = encoding
-        self.endianness = endianness
+        self._default_encoding = encoding
+        self._endianness = endianness
 
     def __repr__(self):
         return f"{self.__class__} tell()={self.tell()}"
@@ -25,7 +25,7 @@ class BinaryReader(io.BufferedReader):
         Returns:
             The value read from the stream.
         """
-        struct = get_struct(f"{self.endianness}{fmt}")
+        struct = get_struct(f"{self._endianness}{fmt}")
         return struct.unpack_from(self)[0]
 
     def _read_values(self, fmt: str, count: int) -> tuple:
@@ -38,7 +38,7 @@ class BinaryReader(io.BufferedReader):
         Returns:
             A `tuple` containing the values read from the stream.
         """
-        full_format = f"{self.endianness}{count}{fmt}"
+        full_format = f"{self._endianness}{count}{fmt}"
         return Struct(full_format).unpack_from(self)
 
     def align(self, alignment: int) -> None:
@@ -76,16 +76,16 @@ class BinaryReader(io.BufferedReader):
 
     def read_0_string(self, encoding: str = None) -> str:
         # This will not work for strings with differently sized characters depending on their code.
-        char_size = len("a".encode(encoding or self.encoding))
+        char_size = len("a".encode(encoding or self._default_encoding))
         str_bytes = bytearray()
         read_bytes = bytearray(self.read(char_size))
         while any(read_bytes):
             str_bytes.append(read_bytes)
             read_bytes = bytearray(self.read(char_size))
-        return str_bytes.decode(encoding or self.encoding)
+        return str_bytes.decode(encoding or self._default_encoding)
 
     def read_raw_string(self, length: int, encoding: str = None) -> str:
-        return self.read(length).decode(encoding or self.encoding)
+        return self.read(length).decode(encoding or self._default_encoding)
 
     def read_uint16(self) -> int:
         return self._read_value("H")

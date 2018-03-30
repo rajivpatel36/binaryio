@@ -7,9 +7,10 @@ from binaryio.structs import get_struct
 
 
 class BinaryWriter(io.BufferedWriter):
-    def __init__(self, raw, buffer_size: int=io.DEFAULT_BUFFER_SIZE, endianness: str = ""):
+    def __init__(self, raw, buffer_size: int=io.DEFAULT_BUFFER_SIZE, encoding: str = "utf-8", endianness: str = ""):
         super().__init__(raw, buffer_size=buffer_size)
-        self.endianness = endianness
+        self._default_encoding = encoding
+        self._endianness = endianness
         self._structs_cache = {}
 
     def _write_value(self, fmt: str, value):
@@ -19,7 +20,7 @@ class BinaryWriter(io.BufferedWriter):
             fmt: The format string for the value to be written to the stream.
             value: The value to write to the stream.
         """
-        struct = get_struct(f"{self.endianness}{fmt}")
+        struct = get_struct(f"{self._endianness}{fmt}")
         self.write(struct.pack(value))
 
     def _write_values(self, fmt: str, values: Iterable):
@@ -31,13 +32,13 @@ class BinaryWriter(io.BufferedWriter):
         """
         # This does not use _get_struct because the length of `values` may change frequently so the cache
         # would not be effective.
-        full_format = f"{self.endianness}{len(values)}{fmt}"
+        full_format = f"{self._endianness}{len(values)}{fmt}"
         self.write(Struct(full_format).pack(*values))
 
     def align(self, alignment: int):
         self.seek(-self.tell() % alignment, io.SEEK_CUR)
 
-    def write_0_string(self, value: str, encoding="ascii"):
+    def write_0_string(self, value: str, encoding: str = None):
         self.write_raw_string(value, encoding)
         self.write_byte(0)
 
@@ -83,8 +84,8 @@ class BinaryWriter(io.BufferedWriter):
     def write_uint32s(self, value: Iterable[int]):
         self._write_values("I", value)
 
-    def write_raw_string(self, value: str, encoding: str = "ascii"):
-        self.write(bytes(value, encoding=encoding))
+    def write_raw_string(self, value: str, encoding: str = None):
+        self.write(bytes(value, encoding=encoding or self._default_encoding))
 
     def write_double(self, value: float):
         self._write_value("d", value)
@@ -92,7 +93,7 @@ class BinaryWriter(io.BufferedWriter):
     def write_doubles(self, value: Iterable[float]):
         self._write_values("d", value)
 
-    def write_length_prefixed_string(self, value: str, encoding: str = "ascii"):
-        bytes_to_write = bytes(value, encoding=encoding)
+    def write_length_prefixed_string(self, value: str, encoding: str = None):
+        bytes_to_write = bytes(value, encoding=encoding or self._default_encoding)
         self.write_int16(len(bytes_to_write))
         self.write(bytes_to_write)
